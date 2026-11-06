@@ -10,3 +10,7 @@ native-host.sh
 *.tmp
 .DS_Store
 Thumbs.db
+
+# 本地安全测试页（2026-10 做提示注入测试时生成的临时页，不是仓库产物；
+# 留在这里是为了避免 git add -A 再把它卷进提交）
+dev/security-agent-injection.html
