@@ -496,9 +496,40 @@ dsh plugin --profile desktop add link:<仓库路径>\dsh-plugin
 #    复制进 profile 的 cordis.patch.yml（当前 desktop profile 就是这么挂的）
 ```
 
+## 其它 Agent / 编辑器也能用（不止 DSH）
+
+这个项目**不是 DSH 专属**的：扩展是纯 MV3、桥接与 CLI **零依赖**、MCP 服务端说的是**标准 MCP**（stdio，
+`initialize` / `tools/list` / `tools/call`）。所以任何 MCP 客户端、任何能跑命令的 agent 都能驱动它：
+
+| 你想用的 | 怎么接 |
+|---|---|
+| **任何 MCP 客户端**（Claude Code / Claude Desktop、Cursor、Cline、Zed…） | 在它自己的配置里加一段 `mcpServers`（见下） |
+| **任何能跑 shell 的 agent** | 直接调 CLI：`node page.mjs state`、`node page.mjs click "@e12"` |
+| **自己写客户端** | `POST http://127.0.0.1:8799/cmd`（带 `Authorization: Bearer <token>`）或 `ws://127.0.0.1:8799/ws?token=…` |
+
+MCP 配置（位置与字段名各客户端略有差异，以各自文档为准；有的还需要 `"type": "stdio"`）：
+
+```json
+{
+  "mcpServers": {
+    "page-bridge": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": ["E:\\dsh\\page-bridge\\mcp-server.mjs"]
+    }
+  }
+}
+```
+
+三点须知：
+
+- **能力令牌**：任何客户端都要带（`node page.mjs token`）—— 同一 Windows 用户下的进程能读到 `var/bridge-token`，
+  跨用户读不到，这就是设计边界；
+- **native host 注册是浏览器级**的，不是 DSH 级：别的 agent 一样白得这个好处；
+- **工具名前缀会变**：`mcp__page-bridge__*` 是 DSH 的命名习惯，其它客户端按自己的规则显示，功能相同。
+
+`dsh-plugin/` 是唯一 DSH 专属的部分（Cordis profile 的 patch 格式）；别的客户端不需要它。
+
 ## 可选升级
 
-- 把 `page.mjs` 包一层 **MCP stdio 服务器**，再用 `@deepseek-ai/dsh-mcp-client` 挂一行配置，
-  就能变成会话里原生的 `mcp__page-bridge__*` 工具（和现在浏览器工具同一套机制）。
 - 需要**真实输入事件/网络与控制台**时，可加 `chrome.debugger`（CDP）：能拿到 `Input.*` 与
   `Network.*` 事件，代价是 Chrome 顶部会出现"正在调试此浏览器"的提示条，且与 DevTools 互斥。

@@ -501,9 +501,42 @@ dsh plugin --profile desktop add link:<仓库路径>\dsh-plugin
 #    复制进 profile 的 cordis.patch.yml（当前 desktop profile 就是这么挂的）
 ```
 
+## Works with other agents and editors too (not just DSH)
+
+This project is **not DSH-specific**: the extension is plain MV3, the bridge and the CLI have **zero dependencies**,
+and the MCP server speaks **standard MCP** (stdio, `initialize` / `tools/list` / `tools/call`). So any MCP client,
+and any agent that can run a command, can drive it:
+
+| What you use | How to connect |
+|---|---|
+| **Any MCP client** (Claude Code / Claude Desktop, Cursor, Cline, Zed…) | Add an `mcpServers` entry to its own config (below) |
+| **Any agent that can run a shell** | Call the CLI directly: `node page.mjs state`, `node page.mjs click "@e12"` |
+| **Your own client** | `POST http://127.0.0.1:8799/cmd` (with `Authorization: Bearer <token>`) or `ws://127.0.0.1:8799/ws?token=…` |
+
+MCP config (the location and exact field names differ per client — follow its docs; some also want `"type": "stdio"`):
+
+```json
+{
+  "mcpServers": {
+    "page-bridge": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": ["E:\\dsh\\page-bridge\\mcp-server.mjs"]
+    }
+  }
+}
+```
+
+Three things to know:
+
+- **Capability token**: every client needs it (`node page.mjs token`) — processes under the same Windows user can read
+  `var/bridge-token`, other users cannot; that is the design boundary;
+- **The native host registration is per browser**, not per DSH: other agents get that benefit for free;
+- **Tool name prefixes change**: `mcp__page-bridge__*` is DSH's naming convention; other clients display their own
+  prefix, with identical functionality.
+
+`dsh-plugin/` is the only DSH-specific part (the Cordis profile patch format); other clients do not need it.
+
 ## Optional upgrades
 
-- Wrap `page.mjs` in an **MCP stdio server**, then mount one line of config with `@deepseek-ai/dsh-mcp-client`,
-  and it becomes native `mcp__page-bridge__*` tools in a session (the same mechanism as the current browser tools).
 - When you need **real input events/network and console**, you can add `chrome.debugger` (CDP): it gives access to `Input.*` and
   `Network.*` events, at the cost of a "This browser is being debugged" bar appearing at the top of Chrome, and being mutually exclusive with DevTools.
