@@ -231,6 +231,10 @@ if (problems.length) {
   const fixable = problems.filter((p) => p.fixable).length;
   console.log(`✗ 发现 ${problems.length} 个问题（其中 ${fixable} 个可以 --fix 修）`);
   if (!FIX && fixable) console.log('  重跑：node dev/doctor.mjs --fix');
-  process.exit(1);
+  // 不要 process.exit()：联网检查用的是 fetch（undici），其异步句柄还在关闭中时强制退出，
+  // 在 Windows 上会触发 libuv 断言（Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)）。
+  // 设 exitCode 让事件循环自己排空 —— 与 dev/ws-fuzz-test.mjs 里踩过的是同一个坑。
+  process.exitCode = 1;
+} else {
+  console.log('✓ 全部通过 —— 路径与 DSH 版本解耦，扩展与仓库一致');
 }
-console.log('✓ 全部通过 —— 路径与 DSH 版本解耦，扩展与仓库一致');
