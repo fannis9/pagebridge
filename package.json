@@ -23,6 +23,7 @@
     "test:page-op-regions": "node dev/page-op-regions-test.mjs",
     "test:browser:fixtures": "node dev/build-page-op.mjs && node dev/page-op-regions-test.mjs && node dev/page-read-test.mjs && node dev/snapshot-probe.mjs && node dev/target-resolve-test.mjs && node dev/key-dispatch-test.mjs && node dev/make-popup-preview.mjs",
     "test:browser:native": "node dev/native-e2e-test.mjs",
-    "check:all": "node dev/check-syntax.mjs"
+    "check:all": "node dev/check-syntax.mjs",
+    "doctor": "node dev/doctor.mjs"
   }
 }

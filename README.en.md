@@ -475,6 +475,7 @@ is that different branded Chromium builds vary a lot in their support for `--loa
 | Port occupied (a bridge is already running) | **Usually nothing to do**: the native host will automatically degrade into a **relay** via a one-time challenge-response, forwarding frames to the bridge that holds the port; if the other side cannot produce the token it **fails closed** (logs and exits), and never hands over the channel authenticated by Chrome |
 | Want to run two bridges at once | `bridge.mjs --port 8800 --token-file var/token-8800`, and make the extension use the same address and token (the `WS_BASE` in `extension/background.js` + pasting the matching token in the popup); after the change, click ↻ once in `chrome://extensions` |
 | Stops working after a DSH restart | The bridge is a DSH background task and ends along with it; just re-run step 1 (it can also be made to start on boot) |
+| Extension won't connect / MCP tools vanish after a DSH upgrade | Run `node dev/doctor.mjs` first. It checks the two **hardcoded** node paths (the native-host launcher and the MCP launch command in the profile), whether the extension version matches the repo manifest, and whether the plugin SDK version changed; `--fix` rewrites the launcher to the system node and re-registers. These failures are **silent** (the MCP row sets `failOnStartupError: false`), so running it after an upgrade is the cheap move |
 
 ## DSH plugin (automatically available in new conversations)
 

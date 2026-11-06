@@ -470,6 +470,7 @@ GitHub Actions 里另有手动触发的 [`.github/workflows/browser-e2e.yml`](.g
 | 端口被占（已有桥接在跑） | **通常不用管**：native host 会用一次性 challenge-response 自动降级为**中继**，把帧转发给占端口的那个桥接；若对方拿不出令牌则**失败关闭**（打日志并退出），绝不把 Chrome 认证过的通道交出去 |
 | 想同时跑两个桥接 | `bridge.mjs --port 8800 --token-file var/token-8800`，并让扩展用同一套地址与令牌（`extension/background.js` 的 `WS_BASE` + 弹窗里粘贴对应令牌），改完在 `chrome://extensions` 点一次 ↻ |
 | DSH 重启后失效 | 桥接是 DSH 的后台任务，随之结束；重跑第 1 步即可（也可做成开机自启） |
+| DSH 升级后扩展连不上 / MCP 工具消失 | 先跑 `node dev/doctor.mjs`。它检查两处**硬编码**的 node 路径（native host 启动脚本、profile 里的 MCP 启动命令）、扩展版本是否与仓库 manifest 一致、插件 SDK 版本有没有变；`--fix` 会把启动脚本换回系统 node 并重注册。这类故障是**静默**的（MCP 行配了 `failOnStartupError: false`），所以升级后主动跑一次最省事 |
 
 ## DSH 插件（新对话自动可用）
 

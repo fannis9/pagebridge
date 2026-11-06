@@ -115,10 +115,38 @@ const launcherPath = () => join(HERE, WIN ? 'native-host.cmd' : 'native-host.sh'
 const manifestPath = (vendor) => join(manifestDir(vendor), `${HOST_NAME}.json`);
 const registryKey = (vendor) => `HKCU\\Software\\${VENDORS[vendor].win}\\NativeMessagingHosts\\${HOST_NAME}`;
 
+/**
+ * 选一个"稳定"的 node：优先**系统安装的 node**，其次才是当前进程。
+ *
+ * 为什么不能用 process.execPath 了事：DSH 有时会用自带的运行时 node 跑本脚本，
+ * 那个路径在 `~/.dsh/dsh-runtimes/dsh-primary-runtime/...` 下 —— 属于 DSH 私有布局，
+ * 版本升级虽然通常是"原地换目录"，一旦它改了布局，写死这条路径的启动脚本就会失效，
+ * 而 native messaging 的失败是静默的（浏览器只会说"连不上"）。
+ * 系统 node 与 DSH 的更新完全无关，是解耦点。
+ */
+function stableNode() {
+  if (!WIN) return process.execPath;
+  const candidates = [
+    process.env.PAGE_BRIDGE_NODE,
+    'C:\\Program Files\\nodejs\\node.exe',
+    'C:\\Program Files (x86)\\nodejs\\node.exe',
+  ];
+  for (const candidate of candidates) {
+    if (candidate && existsSync(candidate)) return candidate;
+  }
+  return process.execPath;
+}
+
 function writeLauncher() {
   const target = launcherPath();
-  const node = process.execPath;
+  const node = stableNode();
   const script = join(HERE, 'bridge.mjs');
+  if (WIN && /dsh-runtimes/i.test(node)) {
+    console.warn(
+      `⚠ 没有找到系统 node，启动脚本仍然依赖 DSH 的运行时路径：\n    ${node}\n` +
+        '  建议安装 Node.js（或设置 PAGE_BRIDGE_NODE）后重跑 register，否则 DSH 改布局时原生通道会静默失效。',
+    );
+  }
   if (WIN) {
     // No stdout noise: in native mode every frame on stdout must be protocol-only.
     writeFileSync(target, `@echo off\r\n"${node}" "${script}" --native\r\n`, 'utf8');
