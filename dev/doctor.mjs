@@ -23,6 +23,22 @@ const PROJECT = join(HERE, '..');
 const WIN = process.platform === 'win32';
 const PROFILE = process.env.DSH_PROFILE_DIR ?? join(homedir(), '.dsh', 'profiles', 'desktop');
 const FIX = process.argv.includes('--fix');
+const UPDATE = process.argv.includes('--update');
+
+/** 版本比较：v0.9.0 > v0.8.1；预发布后缀按字符串比较（够用即可）。 */
+function compareVersions(a, b) {
+  const split = (v) => String(v).replace(/^v/, '').split(/[.-]/).map((part) => (/^\d+$/.test(part) ? Number(part) : part));
+  const left = split(a);
+  const right = split(b);
+  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
+    const x = left[i] ?? 0;
+    const y = right[i] ?? 0;
+    if (x === y) continue;
+    if (typeof x === 'number' && typeof y === 'number') return x > y ? 1 : -1;
+    return String(x) > String(y) ? 1 : -1;
+  }
+  return 0;
+}
 
 const problems = [];
 const notes = [];
@@ -124,6 +140,66 @@ if (!existsSync(profilePkg)) {
     else if (actual !== tested) {
       info(`${name} 版本变了`, `测试过 ${tested}，当前 ${actual} —— 留意 MCP 工具是否还在`);
     } else ok(`${name} 与测试过的版本一致`, actual);
+  }
+}
+
+// ---------------------------------------------------------------- 5. 联网版本检查（只读）
+//
+// 只做"看"，不做"装"：自动下载并安装等于让机器在启动时执行远端代码，
+// 而这个项目的整套安全模型都建立在"不信任远端"上。所以升级必须是**显式的一次动作**（--update）。
+console.log('\n[5] 联网检查（GitHub 最新 release）');
+const LOCAL_VERSION = JSON.parse(readFileSync(join(PROJECT, 'package.json'), 'utf8')).version;
+const skipNetwork = process.argv.includes('--offline') || process.env.PAGE_BRIDGE_NO_NETWORK === '1';
+let latestTag = null;
+if (skipNetwork) {
+  info('已跳过', '（--offline 或 PAGE_BRIDGE_NO_NETWORK=1）');
+} else {
+  try {
+    const res = await fetch('https://api.github.com/repos/fannis9/dsh-page-bridge/releases/latest', {
+      headers: { 'user-agent': 'page-bridge-doctor', accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const release = await res.json();
+    latestTag = release.tag_name;
+    const latest = String(latestTag).replace(/^v/, '');
+    const order = compareVersions(latest, LOCAL_VERSION);
+    if (order > 0) {
+      bad('本机版本落后于最新 release', `本机 ${LOCAL_VERSION} < ${latestTag}\n升级：node dev/doctor.mjs --update\n${release.html_url}`);
+    } else if (order < 0) {
+      info('本机比最新 release 更新', `本机 ${LOCAL_VERSION} > ${latestTag}（开发中）`);
+    } else {
+      ok('已是最新 release', latestTag);
+    }
+  } catch (error) {
+    info('联网检查失败（不影响下面的本地结论）', String(error?.message ?? error).split('\n')[0]);
+  }
+}
+
+// ---------------------------------------------------------------- 更新（显式动作）
+if (UPDATE) {
+  console.log('\n更新：git pull --ff-only → 重注册 native host');
+  try {
+    const dirty = execFileSync('git', ['status', '--porcelain'], { cwd: PROJECT, stdio: 'pipe' }).toString().trim();
+    if (dirty) throw new Error('工作区不干净，先提交或 stash 再更新');
+    // 本机 .gitconfig 里有按域名写死的代理；这里显式绕过，避免代理没开时连不上。
+    const out = execFileSync(
+      'git',
+      ['-c', 'http.proxy=', '-c', 'http.https://github.com.proxy=', 'pull', '--ff-only'],
+      { cwd: PROJECT, stdio: 'pipe', timeout: 60_000 },
+    ).toString().trim();
+    console.log(`  ${out || '(已是最新)'}`);
+    const after = JSON.parse(readFileSync(join(PROJECT, 'package.json'), 'utf8')).version;
+    console.log(`  更新后版本：${LOCAL_VERSION} → ${after}`);
+    console.log('  接着重注册 native host（启动脚本换成系统 node）…');
+    execFileSync(process.execPath, [join(PROJECT, 'register-host.mjs'), 'register', '--browser', 'edge'], {
+      cwd: PROJECT,
+      stdio: 'pipe',
+      timeout: 60_000,
+    });
+    console.log('  ✓ 已重注册。若扩展仍显示旧版本，去 edge://extensions 点一次 ↻，并重启 DSH 让 MCP 行重新拉起');
+  } catch (error) {
+    console.log(`  ✗ 更新失败：${String(error?.message ?? error).split('\n')[0]}`);
   }
 }
 
