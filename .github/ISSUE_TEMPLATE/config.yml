@@ -1,0 +1,9 @@
+# 关掉空白 issue（这类只有"111"的提交会因此消失），把使用问题引到 README。
+blank_issues_enabled: false
+contact_links:
+  - name: 使用问题 / 怎么接别的 agent
+    url: https://github.com/fannis9/pagebridge#readme
+    about: README 里有安装步骤、三种接法（MCP 客户端 / CLI / 自写客户端）与故障排查表
+  - name: 安全相关
+    url: https://github.com/fannis9/pagebridge/blob/main/README.md
+    about: 本地控制面需要能力令牌；请先读「安全模型」一节再报告

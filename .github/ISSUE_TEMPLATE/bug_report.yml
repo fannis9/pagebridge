@@ -1,0 +1,52 @@
+name: Bug 报告
+description: 扩展 / 桥接 / CLI / MCP 的行为不正确
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量把下面填全 —— 这个项目横跨浏览器扩展、本地桥接和 MCP 服务端，缺信息很难定位。
+
+        > 提示：帖子里可能包含你的 URL 与页面标题，贴之前先删掉不想公开的部分。
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 扩展版本在 edge://extensions 或 chrome://extensions 里；`node page.mjs status --json` 里的 extensionVersion 应一致
+      placeholder: "0.10.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: 浏览器与系统
+      placeholder: "Edge 141 / Windows 11 24H2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 点了什么 / 期望什么 / 实际什么
+      placeholder: |
+        1. 打开 xxx 页面，点扩展图标 →「共享当前标签页」
+        2. 运行 node page.mjs click "text=提交"
+        3. 期望 xxx，实际 xxx
+    validations:
+      required: true
+
+  - type: textarea
+    id: status
+    attributes:
+      label: node page.mjs status --json 的输出
+      description: 敏感信息（URL、标题）请先删掉
+      render: json
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志
+      description: 扩展弹窗里的 lastError、bridge 的报错、CLI 的输出
+      render: shell
