@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * page.mjs — talk to the DSH Page Bridge from the command line.
+ * page.mjs — talk to the Page Bridge from the command line.
  *
  *   node page.mjs status
  *   node page.mjs tabs

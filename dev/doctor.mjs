@@ -155,7 +155,7 @@ if (skipNetwork) {
   info('已跳过', '（--offline 或 PAGE_BRIDGE_NO_NETWORK=1）');
 } else {
   try {
-    const res = await fetch('https://api.github.com/repos/fannis9/dsh-page-bridge/releases/latest', {
+    const res = await fetch('https://api.github.com/repos/fannis9/pagebridge/releases/latest', {
       headers: { 'user-agent': 'page-bridge-doctor', accept: 'application/vnd.github+json' },
       signal: AbortSignal.timeout(8000),
     });

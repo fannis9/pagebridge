@@ -1,9 +1,9 @@
-# dsh-page-bridge — profile bundle patch（示例）。
+# pagebridge — profile bundle patch（示例）。
 #
 # Mounts the DSH MCP client against page-bridge/mcp-server.mjs, which publishes the
 # user's *real* browser tab as `mcp__page-bridge__*` tools in every session.
 #
-# Requirements: the "DSH Page Bridge" extension loaded (chrome://extensions or
+# Requirements: the "Page Bridge" extension loaded (chrome://extensions or
 # edge://extensions → developer mode → load unpacked → .../page-bridge/extension).
 # The bridge process itself is started on demand by the MCP server and exits by itself
 # when idle.

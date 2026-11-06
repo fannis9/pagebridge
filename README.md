@@ -1,8 +1,8 @@
 **简体中文** | [English](README.en.md)
 
-# DSH Page Bridge — 让你浏览的页面可被 DSH 读取与操作
+# Page Bridge — 让你浏览的页面变成 AI 的手脚
 
-[![tests](https://github.com/fannis9/dsh-page-bridge/actions/workflows/tests.yml/badge.svg)](https://github.com/fannis9/dsh-page-bridge/actions/workflows/tests.yml)
+[![tests](https://github.com/fannis9/pagebridge/actions/workflows/tests.yml/badge.svg)](https://github.com/fannis9/pagebridge/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 不用重开浏览器、不换 profile、不动用调试端口：装一个扩展，它把**你正在看的标签页**按需交给本机
@@ -85,7 +85,7 @@ Chrome 会休眠 MV3 扩展的 service worker，而桥接/DSH 端**无法主动�
 不想照着上面一步步来？**把下面这段话发给你正在用的 agent**（DSH、Claude Code、Cursor 等任何一个都行），
 它会自己把能做的都做完：
 
-> 帮我装一下 Page Bridge：把 https://github.com/fannis9/dsh-page-bridge 克隆到本地任意目录，然后
+> 帮我装一下 Page Bridge：把 https://github.com/fannis9/pagebridge 克隆到本地任意目录，然后
 > ①在该目录运行 `node register-host.mjs register` 注册 native messaging host（用户级、免管理员）；
 > ②把我的 MCP 客户端配一个 stdio server，命令是 `node <该目录绝对路径>/mcp-server.mjs`，名字用 `page-bridge`；
 > ③跑一遍仓库里的自检脚本（`node dev/grant-policy-test.mjs`、`node dev/sw-load-test.mjs`、
@@ -163,8 +163,8 @@ node register-host.mjs register      # 写启动脚本 + 清单 + HKCU 注册表
 node register-host.mjs unregister    # 撤销（扩展自动回退到 WS）
 ```
 
-Windows 上会写入 `%APPDATA%\Google\Chrome\NativeMessagingHosts\com.dsh.page_bridge.json` 和
-`HKCU\Software\Google\Chrome\NativeMessagingHosts\com.dsh.page_bridge`（Edge 同理），
+Windows 上会写入 `%APPDATA%\Google\Chrome\NativeMessagingHosts\com.pagebridge.host.json` 和
+`HKCU\Software\Google\Chrome\NativeMessagingHosts\com.pagebridge.host`（Edge 同理），
 `allowed_origins` 只允许你的扩展 ID。帧格式（4 字节小端长度前缀 + JSON）由
 `dev/native-framing-test.mjs` 用管道模拟 Chrome 验证，覆盖 host 与 relay 两条路径。
 

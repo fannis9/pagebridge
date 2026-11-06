@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * DSH Page Bridge — the hub between the browser extension and DSH tools.
+ * Page Bridge — the hub between the browser extension and DSH tools.
  *
  * Two ways in:
  *   extension ──native messaging──▶ this process   (preferred: no local port for the browser)
@@ -378,7 +378,7 @@ function handleMessage(client, msg) {
     // 令牌只发给"身份可信"的通道：直接由 Chrome 拉起的 native 通道，或握手时出示过令牌的 WS。
     // 攻击者即使抢占端口/连上 WS，也拿不到它，因此无法把扩展骗到自己的通道上。
     const trusted = client.via === 'native' || client.trusted === true;
-    sendTo(client, { type: 'hello-ack', server: 'dsh-page-bridge', via: client.via, ...(trusted ? { token: TOKEN } : {}) });
+    sendTo(client, { type: 'hello-ack', server: 'pagebridge', via: client.via, ...(trusted ? { token: TOKEN } : {}) });
     return;
   }
   if (msg.type === 'ping') { sendTo(client, { type: 'pong', t: msg.t }); return; }
@@ -582,7 +582,7 @@ const server = createServer(async (req, res) => {
 
   res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
   res.end([
-    'DSH Page Bridge',
+    'Page Bridge',
     '',
     `GET  /status            连接状态`,
     `GET  /events?limit=50   最近的标签页事件（仅已共享标签页）`,

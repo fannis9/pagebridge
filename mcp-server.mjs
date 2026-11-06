@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * DSH Page Bridge — MCP stdio server.
+ * Page Bridge — MCP stdio server.
  *
  * Wraps the local bridge (127.0.0.1:8799) as MCP tools so every DSH session gets
  * `mcp__page-bridge__*` natively. The bridge is started on demand (detached) and
@@ -620,7 +620,7 @@ async function handle(message) {
       reply(id, {
         protocolVersion: params?.protocolVersion ?? '2024-11-05',
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'dsh-page-bridge', version: '0.2.0' },
+        serverInfo: { name: 'pagebridge', version: '0.2.0' },
       });
       return;
 

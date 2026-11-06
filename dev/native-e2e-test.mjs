@@ -134,7 +134,7 @@ try {
     process.env.APPDATA ?? '',
     BROWSER === 'edge' ? 'Microsoft\\Edge' : 'Google\\Chrome',
     'NativeMessagingHosts',
-    'com.dsh.page_bridge.json',
+    'com.pagebridge.host.json',
   );
   let allowed = [];
   try {

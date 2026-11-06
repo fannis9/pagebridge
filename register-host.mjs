@@ -22,7 +22,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const HOST_NAME = 'com.dsh.page_bridge';
+const HOST_NAME = 'com.pagebridge.host';
 const EXTENSION_DIR = join(HERE, 'extension');
 const WIN = process.platform === 'win32';
 
@@ -162,7 +162,7 @@ function writeManifest(vendor) {
   mkdirSync(dir, { recursive: true });
   const manifest = {
     name: HOST_NAME,
-    description: 'DSH Page Bridge — native messaging host (Chrome/Edge ⇄ DSH)',
+    description: 'Page Bridge — native messaging host (Chrome/Edge ⇄ local agent)',
     path: launcherPath(),
     type: 'stdio',
     allowed_origins: origins,

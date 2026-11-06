@@ -1,4 +1,4 @@
-# dsh-page-bridge（DSH 插件）
+# pagebridge（DSH 插件）
 
 把**用户真人正在浏览的 Chrome 标签页**变成每个 DSH 会话都能直接调用的工具：
 `mcp__page-bridge__*`（22 个）。
@@ -64,6 +64,6 @@ node page.mjs status
 
 ## 卸载
 
-- link 安装：`dsh plugin --profile desktop remove dsh-page-bridge`
+- link 安装：`dsh plugin --profile desktop remove pagebridge`
 - 手写行：删掉 profile `cordis.patch.yml` 里的 `page-bridge-mcp` insert 段
 - Chrome 扩展：`chrome://extensions` 里移除即可（不影响其它功能）

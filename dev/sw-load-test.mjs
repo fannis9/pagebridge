@@ -343,7 +343,7 @@ check('重新要求共享（回到窄模式）', res?.ok === false && /共享/.t
 
 console.log('\n--- 10b. 窄授权 = origin 级委托（外部评审定的语义） ---');
 // 在 github.com 上共享一个标签页
-worker.chrome.tabUrl = 'https://github.com/fannis9/dsh-page-bridge';
+worker.chrome.tabUrl = 'https://github.com/fannis9/pagebridge';
 await say('share', { tabId: 11 });
 const countCalls = (fn) => worker.chrome.calls.filter((c) => c.fn === fn).length;
 const updatesBefore = countCalls('tabs.update');
@@ -382,7 +382,7 @@ res = await sendCmd('n8', 'state');
 check('被拒之后共享依然有效（没有误伤）', res?.ok === true, JSON.stringify(res));
 
 console.log('\n--- 10c. 动作之后的"事后收权"（click/form 可能让页面自己导航） ---');
-worker.chrome.tabUrl = 'https://github.com/fannis9/dsh-page-bridge';
+worker.chrome.tabUrl = 'https://github.com/fannis9/pagebridge';
 await say('share', { tabId: 11 });
 res = await sendCmd('p1', 'click', { selector: '#link' });
 check('同 origin 的点击 → 共享保留', res?.ok === true && res.result?.grantAlive !== false, JSON.stringify(res));

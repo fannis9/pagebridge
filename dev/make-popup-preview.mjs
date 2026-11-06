@@ -30,8 +30,8 @@ const STATE = {
   grant: {
     tabId: 349827257,
     origin: 'https://github.com',
-    url: 'https://github.com/fannis9/dsh-page-bridge',
-    title: 'GitHub - fannis9/dsh-page-bridge',
+    url: 'https://github.com/fannis9/pagebridge',
+    title: 'GitHub - fannis9/pagebridge',
     grantedAt: Date.now(),
   },
 };
@@ -42,7 +42,7 @@ STATE.status = {
   transport: 'auto',
   activeTransport: 'native',
   wsUrl: 'ws://127.0.0.1:8799/ws',
-  nativeHost: 'com.dsh.page_bridge',
+  nativeHost: 'com.pagebridge.host',
   lastError: null,
   grant: STATE.grant,
 };

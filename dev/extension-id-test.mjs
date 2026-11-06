@@ -69,8 +69,8 @@ const check = (label, ok, detail = '') => {
 
 const APPDATA = process.env.APPDATA ?? join(process.env.USERPROFILE ?? '', 'AppData', 'Roaming');
 const MANIFESTS = {
-  Chrome: join(APPDATA, 'Google', 'Chrome', 'NativeMessagingHosts', 'com.dsh.page_bridge.json'),
-  Edge: join(APPDATA, 'Microsoft', 'Edge', 'NativeMessagingHosts', 'com.dsh.page_bridge.json'),
+  Chrome: join(APPDATA, 'Google', 'Chrome', 'NativeMessagingHosts', 'com.pagebridge.host.json'),
+  Edge: join(APPDATA, 'Microsoft', 'Edge', 'NativeMessagingHosts', 'com.pagebridge.host.json'),
 };
 
 for (const [browser, manifest] of Object.entries(MANIFESTS)) {

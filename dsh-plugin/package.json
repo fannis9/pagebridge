@@ -1,8 +1,8 @@
 {
-  "name": "dsh-page-bridge",
+  "name": "pagebridge",
   "version": "0.2.0",
   "private": true,
-  "description": "Profile bundle: expose the user's real Chrome tab to every DSH session as mcp__page-bridge__* tools (pairs with the DSH Page Bridge browser extension).",
+  "description": "Profile bundle: expose the user's real Chrome tab to every DSH session as mcp__page-bridge__* tools (pairs with the Page Bridge browser extension).",
   "license": "MIT",
   "files": ["cordis.patch.yml", "README.md"],
   "dsh": {

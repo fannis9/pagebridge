@@ -1,8 +1,8 @@
 **English** | [简体中文](README.md)
 
-# DSH Page Bridge — let the pages you browse be readable and operable by DSH
+# Page Bridge — turn the pages you browse into AI's hands
 
-[![tests](https://github.com/fannis9/dsh-page-bridge/actions/workflows/tests.yml/badge.svg)](https://github.com/fannis9/dsh-page-bridge/actions/workflows/tests.yml)
+[![tests](https://github.com/fannis9/pagebridge/actions/workflows/tests.yml/badge.svg)](https://github.com/fannis9/pagebridge/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 No restarting the browser, no switching profiles, no resorting to a debugging port: install one extension,
@@ -89,7 +89,7 @@ After that the extension keeps the connection alive on its own (20-second heartb
 Don't want to follow the steps above one by one? **Send the paragraph below to the agent you are currently using**
 (DSH, Claude Code, Cursor, any one of them will do), and it will do everything it can on its own:
 
-> Please install Page Bridge for me: clone https://github.com/fannis9/dsh-page-bridge into any local directory, then
+> Please install Page Bridge for me: clone https://github.com/fannis9/pagebridge into any local directory, then
 > ① in that directory run `node register-host.mjs register` to register the native messaging host (user level, no administrator needed);
 > ② configure a stdio server for my MCP client, with the command `node <absolute path of that directory>/mcp-server.mjs`, named `page-bridge`;
 > ③ run the repository's self-check scripts (`node dev/grant-policy-test.mjs`, `node dev/sw-load-test.mjs`,
@@ -167,8 +167,8 @@ node register-host.mjs register      # 写启动脚本 + 清单 + HKCU 注册表
 node register-host.mjs unregister    # 撤销（扩展自动回退到 WS）
 ```
 
-On Windows it writes `%APPDATA%\Google\Chrome\NativeMessagingHosts\com.dsh.page_bridge.json` and
-`HKCU\Software\Google\Chrome\NativeMessagingHosts\com.dsh.page_bridge` (the same applies to Edge),
+On Windows it writes `%APPDATA%\Google\Chrome\NativeMessagingHosts\com.pagebridge.host.json` and
+`HKCU\Software\Google\Chrome\NativeMessagingHosts\com.pagebridge.host` (the same applies to Edge),
 and `allowed_origins` allows only your extension ID. The framing format (4-byte little-endian length prefix + JSON) is verified by
 `dev/native-framing-test.mjs` simulating Chrome over pipes, covering both the host and relay paths.
 

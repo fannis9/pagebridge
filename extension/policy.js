@@ -1,5 +1,5 @@
 /**
- * DSH Page Bridge — domain and page policy.
+ * Page Bridge — domain and page policy.
  *
  * Kept dependency-free so it can be loaded by the MV3 service worker and tested
  * directly by dev/grant-policy-test.mjs.

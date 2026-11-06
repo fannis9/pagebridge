@@ -1,5 +1,5 @@
 /**
- * DSH Page Bridge — MV3 service worker.
+ * Page Bridge — MV3 service worker.
  *
  * Holds a WebSocket to the local bridge (127.0.0.1:8799), answers read/act commands
  * for the tab the user is looking at, and forwards tab events.
@@ -868,7 +868,7 @@ function PAGE_OP(payload) {
  *     the browser side, and the port survives service-worker suspension far better.
  *   WebSocket (fallback) — used when the native host isn't registered, or on request.
  */
-const NATIVE_HOST = 'com.dsh.page_bridge';
+const NATIVE_HOST = 'com.pagebridge.host';
 
 /**
  * Which Chromium browser are we in? Chrome and Edge can load this very same directory and
