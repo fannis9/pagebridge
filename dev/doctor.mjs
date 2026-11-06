@@ -182,13 +182,28 @@ if (UPDATE) {
   try {
     const dirty = execFileSync('git', ['status', '--porcelain'], { cwd: PROJECT, stdio: 'pipe' }).toString().trim();
     if (dirty) throw new Error('工作区不干净，先提交或 stash 再更新');
-    // 本机 .gitconfig 里有按域名写死的代理；这里显式绕过，避免代理没开时连不上。
-    const out = execFileSync(
-      'git',
-      ['-c', 'http.proxy=', '-c', 'http.https://github.com.proxy=', 'pull', '--ff-only'],
-      { cwd: PROJECT, stdio: 'pipe', timeout: 60_000 },
-    ).toString().trim();
-    console.log(`  ${out || '(已是最新)'}`);
+    // 两条路都试：先直连（本机 .gitconfig 的 per-URL 代理可能指向没在跑的端口，所以显式绕过），
+    // 失败再退回本机代理 7897 —— 直连被墙时这才是能走的那条。
+    const attempts = [
+      ['直连', ['-c', 'http.proxy=', '-c', 'http.https://github.com.proxy=']],
+      ['经本机代理 127.0.0.1:7897', ['-c', 'http.proxy=http://127.0.0.1:7897', '-c', 'http.https://github.com.proxy=http://127.0.0.1:7897']],
+    ];
+    let out = '';
+    let used = '';
+    let lastError = null;
+    for (const [label, flags] of attempts) {
+      try {
+        out = execFileSync('git', [...flags, 'pull', '--ff-only'], { cwd: PROJECT, stdio: 'pipe', timeout: 90_000 }).toString().trim();
+        used = label;
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        console.log(`  ${label}失败：${String(error?.message ?? error).split('\n')[0]}`);
+      }
+    }
+    if (lastError) throw lastError;
+    console.log(`  ${used}：${out || '(已是最新)'}`);
     const after = JSON.parse(readFileSync(join(PROJECT, 'package.json'), 'utf8')).version;
     console.log(`  更新后版本：${LOCAL_VERSION} → ${after}`);
     console.log('  接着重注册 native host（启动脚本换成系统 node）…');
