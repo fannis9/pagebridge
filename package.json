@@ -1,6 +1,6 @@
 {
   "name": "pagebridge",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "description": "Expose a user's browser tabs to DSH through native messaging, WebSocket, CLI, and MCP.",
