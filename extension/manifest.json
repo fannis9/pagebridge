@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DSH Page Bridge",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "把标签页按需交给本机 DSH Agent：native messaging 首选 + WebSocket 回退，逐标签共享 + 域名黑名单，可一键「完全接管」。",
   "permissions": ["tabs", "scripting", "storage", "alarms", "nativeMessaging"],
   "host_permissions": ["<all_urls>", "http://127.0.0.1:8799/*"],
