@@ -132,6 +132,8 @@ const OLD_NAME_PATTERNS = [
 ];
 const staleNames = [];
 for (const file of files) {
+  // 跳过本文件：下面那行日志里会列出旧名（和可移植性 lint 跳过自己同理）。
+  if (file.replaceAll('\\', '/') === 'dev/check-syntax.mjs') continue;
   const text = readFileSync(join(ROOT, file), 'utf8');
   text.split('\n').forEach((line, index) => {
     for (const pattern of OLD_NAME_PATTERNS) {
