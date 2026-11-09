@@ -195,7 +195,7 @@ try {
     check('SW 里 enabled 为真', state.enabled === true, JSON.stringify(state));
     check('SW 的 activeTransport = native', state.activeTransport === 'native', JSON.stringify(state));
   }
-  check('端点显示 native host 名', /com\.dsh\.page_bridge/.test(popupView.endpoint ?? ''), popupView.endpoint);
+  check('端点显示 native host 名', /com\.pagebridge\.host/.test(popupView.endpoint ?? ''), popupView.endpoint);
 
   // The bridge is the ground truth: it must see a client whose via is 'native'.
   let status = null;

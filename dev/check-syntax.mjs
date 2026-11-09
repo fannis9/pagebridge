@@ -117,3 +117,32 @@ if (offenders.length) {
   process.exit(1);
 }
 console.log('✓ 可移植性 lint 通过（没有 .pathname + 反斜杠 的路径写法）');
+
+// ---------------------------------------------------------------- 旧项目名残留检查
+//
+// 改名（DSH Page Bridge → Page Bridge）时最容易漏的是**正则里的转义写法**：
+// `com\.dsh\.page_bridge` 不含裸字符串 `com.dsh.page_bridge`，所以按字符串替换会漏掉它 ——
+// browser-e2e 就因此连续三次挂在一个"端点显示 native host 名"的断言上（tests 工作流却是绿的）。
+// 这里在必跑 CI 里拦住任何形态的旧名（不只 *.md：历史评审记录允许保留当时的名字）。
+const OLD_NAME_PATTERNS = [
+  /dsh-page-bridge/i,
+  /DSH Page Bridge/,
+  /dsh_page_bridge/i,
+  /com\\?\.dsh\\?\.page_bridge/i,
+];
+const staleNames = [];
+for (const file of files) {
+  const text = readFileSync(join(ROOT, file), 'utf8');
+  text.split('\n').forEach((line, index) => {
+    for (const pattern of OLD_NAME_PATTERNS) {
+      if (pattern.test(line)) staleNames.push(`${file}:${index + 1}  ${pattern}  ${line.trim().slice(0, 90)}`);
+    }
+  });
+}
+if (staleNames.length) {
+  console.log('\n✗ 发现旧项目名残留（改名时漏掉的转义写法最容易出现）：');
+  for (const item of staleNames) console.log(`  ${item}`);
+  process.exitCode = 1;
+} else {
+  console.log('✓ 旧项目名检查通过（dsh-page-bridge / DSH Page Bridge / com.dsh.page_bridge 含转义形）');
+}
