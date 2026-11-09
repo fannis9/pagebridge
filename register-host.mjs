@@ -116,7 +116,25 @@ const manifestPath = (vendor) => join(manifestDir(vendor), `${HOST_NAME}.json`);
 const registryKey = (vendor) => `HKCU\\Software\\${VENDORS[vendor].win}\\NativeMessagingHosts\\${HOST_NAME}`;
 
 /**
- * 选一个"稳定"的 node：优先**系统安装的 node**，其次才是当前进程。
+ * 探测某个 node 是否可用：跑 --version，要求主版本 >= 20（与 package.json 的 engines 一致）。
+ *
+ * 为什么要探测：CI 机器上 `C:\Program Files\nodejs\node.exe` 可能是镜像预装的旧版本。
+ * 一旦低于 20，桥接一启动就崩，而 native messaging 的失败是**静默的** —— 浏览器只说"连不上"，
+ * E2E 里只看得到 `activeTransport: null`、桥接 `fetch failed`、宿主进程为空。
+ */
+function probeNode(execPath) {
+  try {
+    const version = execFileSync(execPath, ['--version'], { stdio: 'pipe', timeout: 5000 }).toString().trim();
+    const major = Number((version.match(/^v(\d+)/) ?? [])[1]);
+    if (!Number.isFinite(major) || major < 20) return null;
+    return { execPath, version };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 选一个"稳定"的 node：优先**系统安装且版本合格**的 node，其次才是当前进程。
  *
  * 为什么不能用 process.execPath 了事：DSH 有时会用自带的运行时 node 跑本脚本，
  * 那个路径在 `~/.dsh/dsh-runtimes/dsh-primary-runtime/...` 下 —— 属于 DSH 私有布局，
@@ -124,29 +142,33 @@ const registryKey = (vendor) => `HKCU\\Software\\${VENDORS[vendor].win}\\NativeM
  * 而 native messaging 的失败是静默的（浏览器只会说"连不上"）。
  * 系统 node 与 DSH 的更新完全无关，是解耦点。
  */
+let LAUNCHER_NODE = null;
+
 function stableNode() {
-  if (!WIN) return process.execPath;
-  const candidates = [
-    process.env.PAGE_BRIDGE_NODE,
-    'C:\\Program Files\\nodejs\\node.exe',
-    'C:\\Program Files (x86)\\nodejs\\node.exe',
-  ];
+  const candidates = WIN
+    ? [process.env.PAGE_BRIDGE_NODE, 'C:\\Program Files\\nodejs\\node.exe', 'C:\\Program Files (x86)\\nodejs\\node.exe']
+    : [];
   for (const candidate of candidates) {
-    if (candidate && existsSync(candidate)) return candidate;
+    if (!candidate || !existsSync(candidate)) continue;
+    const probed = probeNode(candidate);
+    if (probed) return probed;
+    console.warn(`⚠ 跳过 ${candidate}：不存在或版本低于 v20`);
   }
-  return process.execPath;
+  const self = probeNode(process.execPath) ?? { execPath: process.execPath, version: '(未知版本)' };
+  if (WIN && /dsh-runtimes/i.test(self.execPath)) {
+    console.warn(
+      `⚠ 没有找到可用的系统 node，启动脚本只能依赖 DSH 的运行时路径：\n    ${self.execPath}\n` +
+        '  建议安装 Node.js（或设置 PAGE_BRIDGE_NODE）后重跑 register，否则 DSH 改布局时原生通道会静默失效。',
+    );
+  }
+  return self;
 }
 
 function writeLauncher() {
   const target = launcherPath();
-  const node = stableNode();
+  const { execPath: node, version } = stableNode();
+  LAUNCHER_NODE = { node, version };
   const script = join(HERE, 'bridge.mjs');
-  if (WIN && /dsh-runtimes/i.test(node)) {
-    console.warn(
-      `⚠ 没有找到系统 node，启动脚本仍然依赖 DSH 的运行时路径：\n    ${node}\n` +
-        '  建议安装 Node.js（或设置 PAGE_BRIDGE_NODE）后重跑 register，否则 DSH 改布局时原生通道会静默失效。',
-    );
-  }
   if (WIN) {
     // No stdout noise: in native mode every frame on stdout must be protocol-only.
     writeFileSync(target, `@echo off\r\n"${node}" "${script}" --native\r\n`, 'utf8');
@@ -202,6 +224,8 @@ function status() {
   console.log(`launcher      : ${launcherPath()} ${existsSync(launcherPath()) ? '(存在)' : '(缺失)'}`);
   console.log(`bridge script : ${join(HERE, 'bridge.mjs')}`);
   console.log(`node          : ${process.execPath}`);
+  const launcherNode = stableNode();
+  console.log(`launcher node : ${launcherNode.execPath} (${launcherNode.version})`);
   for (const vendor of targets) {
     const file = manifestPath(vendor);
     const registered = WIN ? readRegistry(vendor) : (existsSync(file) ? file : null);
@@ -241,6 +265,9 @@ if (action !== 'register') {
 
 const launcher = writeLauncher();
 console.log(`launcher 已写入：${launcher}`);
+// 把启动脚本实际用的 node 与版本显式打印：native messaging 失败是静默的，
+// 而 CI 日志里能看见的就只有这一行 —— 排查"宿主没被拉起"时它是第一手信息。
+console.log(`launcher node  : ${LAUNCHER_NODE?.node} (${LAUNCHER_NODE?.version})`);
 for (const vendor of targets) {
   const file = writeManifest(vendor);
   if (WIN) registerWindows(vendor, file);
