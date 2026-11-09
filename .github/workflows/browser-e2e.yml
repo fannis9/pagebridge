@@ -29,6 +29,11 @@ jobs:
       - name: Run browser fixture tests
         run: npm run test:browser:fixtures
 
+      # 新增：先证明「浏览器会执行的那个启动脚本」本身能活下来。
+      # 之前只测 bridge.mjs 本身，启动脚本从没进过 CI —— 而改名后 E2E 正是卡在"宿主进程 (无)"。
+      - name: Smoke-test native host launcher
+        run: node dev/launcher-smoke-test.mjs
+
       - name: Run bundled Chromium native messaging E2E
         env:
           DSH_USE_BUNDLED_CHROMIUM: '1'
