@@ -15,7 +15,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -48,6 +48,15 @@ const bad = (label, detail, fixable = false) => {
   problems.push({ label, detail, fixable });
 };
 const info = (label, detail = '') => console.log(`  · ${label}${detail ? `  ${detail}` : ''}`);
+const samePath = (a, b) => {
+  const normalized = (p) => WIN ? resolve(p).toLowerCase() : resolve(p);
+  return normalized(a) === normalized(b);
+};
+const mcpPath = (text) => {
+  // Both DSH's YAML args and Codex's TOML args contain the absolute script path.
+  const match = text.match(/(?:[A-Za-z]:[\\/]|\/)[^\s"'\]\r\n]*mcp-server\.mjs/);
+  return match?.[0] ?? null;
+};
 
 /** 稳定的 node 候选（与 register-host.mjs 保持同一顺序）。 */
 const stableNodeCandidates = [
@@ -97,6 +106,52 @@ if (!existsSync(patchFile)) {
   } else {
     ok('MCP 启动命令可用', cmd ?? '(未解析到 command)');
   }
+}
+
+// ---------------------------------------------------------------- 2b. 多 Agent 必须共用同一份桥接与令牌
+console.log('\n[2b] DSH / Codex / 浏览器注册路径');
+const expectedMcp = join(PROJECT, 'mcp-server.mjs');
+const expectedBridge = join(PROJECT, 'bridge.mjs');
+const dshBlock = patchText?.split(/^-(?=\s)/m).find((chunk) => chunk.includes('page-bridge-mcp'));
+const dshMcp = dshBlock ? mcpPath(dshBlock) : null;
+const codexConfig = process.env.PAGE_BRIDGE_CODEX_CONFIG ?? join(homedir(), '.codex', 'config.toml');
+let codexMcp = null;
+if (existsSync(codexConfig)) {
+  const config = readFileSync(codexConfig, 'utf8');
+  const section = config.match(/^\[mcp_servers\.(?:"page-bridge"|'page-bridge'|page-bridge)\]\s*$([\s\S]*?)(?=^\[|$(?![\s\S]))/m)?.[1];
+  if (section) codexMcp = mcpPath(section);
+}
+for (const [agent, path, source] of [
+  ['DSH', dshMcp, patchFile],
+  ['Codex', codexMcp, codexConfig],
+]) {
+  if (!path) { info(`${agent} 未配置 Page Bridge 或未找到脚本路径`, source); continue; }
+  if (!samePath(path, expectedMcp)) {
+    bad(`${agent} 指向另一份仓库`, `${source}\n当前：${path}\n应改为：${expectedMcp}\n两份仓库各有 var/bridge-token，共用端口时会互相认证失败。`);
+  } else ok(`${agent} 使用本仓库`, path);
+}
+
+const hostManifests = process.env.PAGE_BRIDGE_HOST_MANIFEST
+  ? [process.env.PAGE_BRIDGE_HOST_MANIFEST]
+  : WIN ? ['Google\\Chrome', 'Microsoft\\Edge'].map((vendor) => join(
+    process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'), vendor, 'NativeMessagingHosts', 'com.pagebridge.host.json',
+  )) : [];
+for (const hostManifest of hostManifests) {
+  if (existsSync(hostManifest)) {
+    try {
+      const host = JSON.parse(readFileSync(hostManifest, 'utf8'));
+      const hostLauncher = host.path;
+      const hostScript = hostLauncher && existsSync(hostLauncher)
+        ? readFileSync(hostLauncher, 'utf8').match(/"([^"]*bridge\.mjs)"/)?.[1]
+        : null;
+      if (!hostScript) bad('浏览器注册的启动脚本无法解析', `${hostManifest}\n启动脚本：${hostLauncher ?? '未指定'}`);
+      else if (!samePath(hostScript, expectedBridge)) {
+        bad('浏览器 native host 指向另一份仓库', `${hostManifest}\n当前：${hostScript}\n应改为：${expectedBridge}\n在本仓库运行 node register-host.mjs register。`);
+      } else ok('浏览器 native host 使用本仓库', hostScript);
+    } catch (error) {
+      bad('浏览器 native host 清单无法读取', `${hostManifest}\n${String(error?.message ?? error)}`);
+    }
+  } else info('没有找到浏览器 native host 清单', hostManifest);
 }
 
 // ---------------------------------------------------------------- 3. 扩展与桥接

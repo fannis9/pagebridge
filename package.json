@@ -1,6 +1,6 @@
 {
   "name": "pagebridge",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "private": true,
   "type": "module",
   "description": "Expose a user's browser tabs to DSH through native messaging, WebSocket, CLI, and MCP.",
@@ -16,6 +16,7 @@
     "test:fuzz": "node dev/ws-fuzz-test.mjs",
     "test:cli-errors": "node dev/page-cli-error-test.mjs",
     "test:docs-parity": "node dev/docs-parity-test.mjs",
+    "test:doctor-path": "node dev/doctor-path-test.mjs",
     "test:queue": "node dev/bridge-queue-test.mjs",
     "test:native": "node dev/native-framing-test.mjs",
     "test:mcp": "node smoke-mcp.mjs",

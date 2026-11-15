@@ -14,6 +14,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const VERSION = JSON.parse(readFileSync(join(HERE, 'package.json'), 'utf8')).version;
 const BRIDGE = join(HERE, 'bridge.mjs');
 const SHOTS = join(HERE, 'var', 'shots');
 const PORT = Number(process.env.PAGE_BRIDGE_PORT ?? 8799);
@@ -620,7 +621,7 @@ async function handle(message) {
       reply(id, {
         protocolVersion: params?.protocolVersion ?? '2024-11-05',
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'pagebridge', version: '0.2.0' },
+        serverInfo: { name: 'pagebridge', version: VERSION },
       });
       return;
 

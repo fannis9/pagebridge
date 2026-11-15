@@ -470,7 +470,7 @@ GitHub Actions 里另有手动触发的 [`.github/workflows/browser-e2e.yml`](.g
 | 端口被占（已有桥接在跑） | **通常不用管**：native host 会用一次性 challenge-response 自动降级为**中继**，把帧转发给占端口的那个桥接；若对方拿不出令牌则**失败关闭**（打日志并退出），绝不把 Chrome 认证过的通道交出去 |
 | 想同时跑两个桥接 | `bridge.mjs --port 8800 --token-file var/token-8800`，并让扩展用同一套地址与令牌（`extension/background.js` 的 `WS_BASE` + 弹窗里粘贴对应令牌），改完在 `chrome://extensions` 点一次 ↻ |
 | DSH 重启后失效 | 桥接是 DSH 的后台任务，随之结束；重跑第 1 步即可（也可做成开机自启） |
-| DSH 升级后扩展连不上 / MCP 工具消失 | 先跑 `node dev/doctor.mjs`。它检查两处**硬编码**的 node 路径（native host 启动脚本、profile 里的 MCP 启动命令）、扩展版本是否与仓库 manifest 一致、插件 SDK 版本有没有变；`--fix` 会把启动脚本换回系统 node 并重注册。这类故障是**静默**的（MCP 行配了 `failOnStartupError: false`），所以升级后主动跑一次最省事 |
+| DSH 升级后扩展连不上 / MCP 工具消失 | 先跑 `node dev/doctor.mjs`。它检查两处**硬编码**的 node 路径（native host 启动脚本、profile 里的 MCP 启动命令）、DSH/Codex/native host 是否指向同一份仓库、扩展版本是否与仓库 manifest 一致、插件 SDK 版本有没有变；`--fix` 会把启动脚本换回系统 node 并重注册。MCP 路径分叉时按 doctor 提示修改客户端配置并新开会话。这类故障可能**静默**出现（MCP 行配了 `failOnStartupError: false`） |
 
 ## DSH 插件（新对话自动可用）
 
@@ -508,6 +508,8 @@ dsh plugin --profile desktop add link:<仓库路径>\dsh-plugin
 | **自己写客户端** | `POST http://127.0.0.1:8799/cmd`（带 `Authorization: Bearer <token>`）或 `ws://127.0.0.1:8799/ws?token=…` |
 
 MCP 配置（位置与字段名各客户端略有差异，以各自文档为准；有的还需要 `"type": "stdio"`）：
+
+多个 Agent 可同时连接，但各自的 MCP 配置必须指向**同一份仓库**的 `mcp-server.mjs`；浏览器 native host 也应注册自这份仓库。不要给 DSH 和 Codex 各克隆一份：两份仓库的 `var/bridge-token` 不同，共用 8799 端口时会互相认证失败。运行 `node dev/doctor.mjs --offline` 可检查三方路径；若报告分叉，按输出修改配置，必要时在选定的仓库运行 `node register-host.mjs register`，然后新开 Agent 会话。
 
 ```json
 {

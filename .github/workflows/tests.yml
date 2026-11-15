@@ -49,6 +49,9 @@ jobs:
       - name: 中英双版文档一致性（代码块逐字节 / 行内代码 / 小节 / 链接 / 互链）
         run: npm run test:docs-parity
 
+      - name: 多 Agent 路径分叉诊断
+        run: npm run test:doctor-path
+
       - name: 命令队列 / 实例路由 / WS 帧上限
         run: node dev/bridge-queue-test.mjs
 
